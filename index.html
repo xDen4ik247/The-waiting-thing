@@ -40,150 +40,28 @@
             max-width: 1000px;
         }
 
-        .timer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            font-size: 8vmin;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        }
-
-        .timer__item {
-            position: relative;
-            padding: 0 15px;
-        }
-
-        .timer__item::after {
-            content: attr(data-title);
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-            white-space: nowrap;
-        }
-
-        .separator {
-            padding-bottom: 15px;
-        }
-
-        #current-time {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 8px 12px;
-            border-radius: 5px;
-            color: white;
+        /* Стили для внешнего таймера */
+        .mt-timer {
+            font-size: 8vmin !important;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8) !important;
         }
 
         @media (max-width: 768px) {
-            .timer {
-                font-size: 10vmin;
-            }
-            .timer__item::after {
-                font-size: 12px;
-                bottom: -15px;
-            }
-            #current-time {
-                font-size: 12px;
-                top: 10px;
-                left: 10px;
+            .mt-timer {
+                font-size: 10vmin !important;
             }
         }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
-    <div id="current-time"></div>
     <div class="container">
-        <div class="timer">
-            <div class="timer__item timer__days" data-title="дней">00</div>
-            <div class="separator">:</div>
-            <div class="timer__item timer__hours" data-title="часов">00</div>
-            <div class="separator">:</div>
-            <div class="timer__item timer__minutes" data-title="минут">00</div>
-            <div class="separator">:</div>
-            <div class="timer__item timer__seconds" data-title="секунд">00</div>
-        </div>
+        <!-- Контейнер для внешнего таймера -->
+        <div class="mt-timer" data-type="until" data-time="2024-03-22T12:30:00+03:00"></div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Конфигурация
-            const TARGET_DATE = new Date('2024-03-22T12:30:00+03:00'); // Москва GMT+3
-            const TIME_ZONE = 'Europe/Moscow';
-            
-            // Элементы DOM
-            const currentTimeElement = document.getElementById('current-time');
-            const elDays = document.querySelector('.timer__days');
-            const elHours = document.querySelector('.timer__hours');
-            const elMinutes = document.querySelector('.timer__minutes');
-            const elSeconds = document.querySelector('.timer__seconds');
-
-            // Функция склонения числительных
-            const declensionNum = (num, words) => words[(num % 100 > 4 && num % 100 < 20) ? 2 : [2, 0, 1, 1, 1, 2][num % 10 < 5 ? num % 10 : 5]];
-
-            // Обновление текущего времени
-            function updateCurrentTime() {
-                const options = {
-                    timeZone: TIME_ZONE,
-                    hour12: false,
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                };
-                currentTimeElement.textContent = new Date().toLocaleString('de-DE', options);
-            }
-
-            // Обновление таймера
-            function updateTimer() {
-                const now = new Date();
-                const diff = Math.max(0, TARGET_DATE - now);
-
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((diff / (1000 * 60)) % 60);
-                const seconds = Math.floor((diff / 1000) % 60);
-
-                // Обновление значений
-                elDays.textContent = String(days).padStart(2, '0');
-                elHours.textContent = String(hours).padStart(2, '0');
-                elMinutes.textContent = String(minutes).padStart(2, '0');
-                elSeconds.textContent = String(seconds).padStart(2, '0');
-
-                // Обновление подписей
-                elDays.dataset.title = declensionNum(days, ['день', 'дня', 'дней']);
-                elHours.dataset.title = declensionNum(hours, ['час', 'часа', 'часов']);
-                elMinutes.dataset.title = declensionNum(minutes, ['минута', 'минуты', 'минут']);
-                elSeconds.dataset.title = declensionNum(seconds, ['секунда', 'секунды', 'секунд']);
-
-                if (diff === 0) {
-                    clearInterval(timerId);
-                    document.querySelector('.timer').innerHTML = "ВРЕМЯ ПРИШЛО!";
-                }
-            }
-
-            // Инициализация
-            let timerId;
-            if (isNaN(TARGET_DATE)) {
-                document.querySelector('.timer').textContent = 'ОШИБКА ДАТЫ!';
-            } else {
-                updateCurrentTime();
-                updateTimer();
-                timerId = setInterval(() => {
-                    updateCurrentTime();
-                    updateTimer();
-                }, 1000);
-            }
-        });
-    </script>
+    <!-- Скрипт мегатаймера -->
+    <script src="//megatimer.ru/get/8d1ed40fdacde6a885a49c965455a648.js"></script>
 </body>
 </html>
