@@ -76,16 +76,18 @@
     </div>
 
     <script>
-        // Корректное создание даты для Московского времени (UTC+3)
-        const targetDate = new Date(Date.UTC(2024, 2, 22, 9, 30)); // 22 марта 2024 12:30 МСК
+        // Создаем дату напрямую в Московском времени
+        const targetDate = new Date('2024-03-22T12:30:00+03:00');
         
         // Элементы интерфейса
         const timerElement = document.getElementById('timer');
         const dateElement = document.getElementById('current-date');
 
+        // Функция обновления текущей даты
         function updateCurrentDate() {
             const now = new Date();
-            const options = {
+            dateElement.textContent = now.toLocaleString('ru-RU', {
+                timeZone: 'Europe/Moscow',
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -94,44 +96,59 @@
                 minute: '2-digit',
                 second: '2-digit',
                 timeZoneName: 'short'
-            };
-            dateElement.textContent = now.toLocaleString('ru-RU', options);
+            });
         }
 
-        function updateTimer() {
-            const now = new Date();
-            const diff = targetDate - now;
+        // Функция расчета времени
+        function getTimeRemaining(endtime) {
+            const total = endtime - new Date();
+            const seconds = Math.abs(Math.floor((total / 1000) % 60));
+            const minutes = Math.abs(Math.floor((total / 1000 / 60) % 60));
+            const hours = Math.abs(Math.floor((total / (1000 * 60 * 60)) % 24));
+            const days = Math.abs(Math.floor(total / (1000 * 60 * 60 * 24)));
+            
+            return {
+                total,
+                days,
+                hours,
+                minutes,
+                seconds
+            };
+        }
 
-            if (diff <= 0) {
+        // Основная функция обновления таймера
+        function updateTimer() {
+            const t = getTimeRemaining(targetDate);
+            
+            if (t.total <= 0) {
                 timerElement.innerHTML = "ВРЕМЯ ПРИШЛО!";
                 return;
             }
-
-            const totalSeconds = Math.floor(diff / 1000);
-            const days = Math.floor(totalSeconds / (3600 * 24));
-            const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
+            
             timerElement.innerHTML = 
-                `${days.toString().padStart(2, '0')}:` +
-                `${hours.toString().padStart(2, '0')}:` +
-                `${minutes.toString().padStart(2, '0')}:` +
-                `${seconds.toString().padStart(2, '0')}`;
+                `${String(t.days).padStart(2, '0')}:` +
+                `${String(t.hours).padStart(2, '0')}:` +
+                `${String(t.minutes).padStart(2, '0')}:` +
+                `${String(t.seconds).padStart(2, '0')}`;
+
+            // Отладочная информация в консоль
+            console.log('Текущее время:', new Date().toString());
+            console.log('Целевая дата:', targetDate.toString());
+            console.log('Осталось:', t);
         }
 
-        // Проверка и инициализация
+        // Инициализация
         if (isNaN(targetDate.getTime())) {
             timerElement.innerHTML = "ОШИБКА ДАТЫ!";
+            console.error('Некорректная дата:', targetDate);
         } else {
-            // Обновление данных каждую секунду
-            setInterval(() => {
-                updateTimer();
-                updateCurrentDate();
-            }, 1000);
-            // Первоначальное обновление
-            updateTimer();
+            // Запуск обновлений
             updateCurrentDate();
+            updateTimer();
+            setInterval(() => {
+                updateCurrentDate();
+                updateTimer();
+            }, 1000);
         }
     </script>
 </body>
