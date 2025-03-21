@@ -13,6 +13,7 @@
             align-items: center;
             background: url('IMG_6435.webp') center/cover no-repeat;
             position: relative;
+            flex-direction: column;
         }
 
         .overlay {
@@ -42,47 +43,95 @@
             margin: 10px 0;
         }
 
+        #current-date {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
         @media (max-width: 600px) {
             .timer {
                 font-size: calc(4vw + 15px);
+            }
+            #current-date {
+                font-size: 14px;
+                top: 10px;
+                left: 10px;
             }
         }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
+    <div id="current-date"></div>
     <div id="countdown">
         <div class="timer" id="timer">00:00:00:00</div>
     </div>
 
     <script>
         // Корректное создание даты для Московского времени (UTC+3)
-        const targetDate = new Date(Date.UTC(2024, 2, 22, 9, 30)); // 22 марта 2024 12:30 МСК = 09:30 UTC
+        const targetDate = new Date(Date.UTC(2024, 2, 22, 9, 30)); // 22 марта 2024 12:30 МСК
+        
+        // Элементы интерфейса
+        const timerElement = document.getElementById('timer');
+        const dateElement = document.getElementById('current-date');
+
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+            };
+            dateElement.textContent = now.toLocaleString('ru-RU', options);
+        }
 
         function updateTimer() {
             const now = new Date();
             const diff = targetDate - now;
 
             if (diff <= 0) {
-                document.getElementById('timer').innerHTML = "ВРЕМЯ ПРИШЛО!";
+                timerElement.innerHTML = "ВРЕМЯ ПРИШЛО!";
                 return;
             }
 
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            const totalSeconds = Math.floor(diff / 1000);
+            const days = Math.floor(totalSeconds / (3600 * 24));
+            const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
 
-            document.getElementById('timer').innerHTML = 
-                `${days.toString().padStart(2, '0')}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            timerElement.innerHTML = 
+                `${days.toString().padStart(2, '0')}:` +
+                `${hours.toString().padStart(2, '0')}:` +
+                `${minutes.toString().padStart(2, '0')}:` +
+                `${seconds.toString().padStart(2, '0')}`;
         }
 
-        // Проверка корректности даты
+        // Проверка и инициализация
         if (isNaN(targetDate.getTime())) {
-            document.getElementById('timer').innerHTML = "ОШИБКА ДАТЫ!";
+            timerElement.innerHTML = "ОШИБКА ДАТЫ!";
         } else {
-            setInterval(updateTimer, 1000);
+            // Обновление данных каждую секунду
+            setInterval(() => {
+                updateTimer();
+                updateCurrentDate();
+            }, 1000);
+            // Первоначальное обновление
             updateTimer();
+            updateCurrentDate();
         }
     </script>
 </body>
