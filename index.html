@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>До похода на Ждуна осталось</title>
     <style>
-        /* Стили остаются без изменений */
         :root {
             --overlay-opacity: 0.6;
         }
@@ -41,11 +40,33 @@
             max-width: 1000px;
         }
 
-        #timer {
+        .timer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
             font-size: 8vmin;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            margin: 20px 0;
-            letter-spacing: 2px;
+        }
+
+        .timer__item {
+            position: relative;
+            padding: 0 15px;
+        }
+
+        .timer__item::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            white-space: nowrap;
+        }
+
+        .separator {
+            padding-bottom: 15px;
         }
 
         #current-time {
@@ -57,11 +78,16 @@
             background: rgba(0, 0, 0, 0.7);
             padding: 8px 12px;
             border-radius: 5px;
+            color: white;
         }
 
         @media (max-width: 768px) {
-            #timer {
+            .timer {
                 font-size: 10vmin;
+            }
+            .timer__item::after {
+                font-size: 12px;
+                bottom: -15px;
             }
             #current-time {
                 font-size: 12px;
@@ -75,120 +101,89 @@
     <div class="overlay"></div>
     <div id="current-time"></div>
     <div class="container">
-        <div id="timer"></div>
+        <div class="timer">
+            <div class="timer__item timer__days" data-title="дней">00</div>
+            <div class="separator">:</div>
+            <div class="timer__item timer__hours" data-title="часов">00</div>
+            <div class="separator">:</div>
+            <div class="timer__item timer__minutes" data-title="минут">00</div>
+            <div class="separator">:</div>
+            <div class="timer__item timer__seconds" data-title="секунд">00</div>
+        </div>
     </div>
 
     <script>
-        // Конфигурация
-        const TARGET_DATE = new Date('2024-03-22T12:30:00+03:00'); // Москва GMT+3
-        const TIME_ZONE = 'Europe/Moscow';
-        const UPDATE_INTERVAL = 1000;
-
-        // Элементы DOM
-        const timerElement = document.getElementById('timer');
-        const currentTimeElement = document.getElementById('current-time');
-
-        // Форматирование чисел
-        const formatNumber = num => num.toString().padStart(2, '0');
-
-        // Обновление текущего времени в европейском формате
-        function updateCurrentTime() {
-            const options = {
-                timeZone: TIME_ZONE,
-                hour12: false,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
+        document.addEventListener('DOMContentLoaded', () => {
+            // Конфигурация
+            const TARGET_DATE = new Date('2024-03-22T12:30:00+03:00'); // Москва GMT+3
+            const TIME_ZONE = 'Europe/Moscow';
             
-            const dateTimeFormat = new Intl.DateTimeFormat('de-DE', options);
-            const parts = dateTimeFormat.formatToParts(new Date());
-            
-            const formattedDate = parts
-                .map(({ type, value }) => {
-                    switch(type) {
-                        case 'day': return value.padStart(2, '0');
-                        case 'month': return value.padStart(2, '0');
-                        default: return value;
-                    }
-                })
-                .join('');
+            // Элементы DOM
+            const currentTimeElement = document.getElementById('current-time');
+            const elDays = document.querySelector('.timer__days');
+            const elHours = document.querySelector('.timer__hours');
+            const elMinutes = document.querySelector('.timer__minutes');
+            const elSeconds = document.querySelector('.timer__seconds');
 
-            currentTimeElement.textContent = `${formattedDate}`;
-        }
+            // Функция склонения числительных
+            const declensionNum = (num, words) => words[(num % 100 > 4 && num % 100 < 20) ? 2 : [2, 0, 1, 1, 1, 2][num % 10 < 5 ? num % 10 : 5]];
 
-        // Расчет оставшегося времени (без изменений)
-        function getTimeRemaining() {
-            const now = new Date();
-            const total = TARGET_DATE - now;
-
-            if (total <= 0) return { expired: true };
-
-            const seconds = Math.floor((total / 1000) % 60);
-            const minutes = Math.floor((total / 1000 / 60) % 60);
-            const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
-            const days = Math.floor(total / (1000 * 60 * 60 * 24));
-
-            return {
-                days,
-                hours,
-                minutes,
-                seconds,
-                expired: false
-            };
-        }
-
-        // Обновление таймера (без изменений)
-        function updateTimer() {
-            const time = getTimeRemaining();
-
-            if (time.expired) {
-                timerElement.textContent = 'ВРЕМЯ ПРИШЛО!';
-                return;
+            // Обновление текущего времени
+            function updateCurrentTime() {
+                const options = {
+                    timeZone: TIME_ZONE,
+                    hour12: false,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                currentTimeElement.textContent = new Date().toLocaleString('de-DE', options);
             }
 
-            timerElement.innerHTML = `
-                ${formatNumber(time.days)}:
-                ${formatNumber(time.hours)}:
-                ${formatNumber(time.minutes)}:
-                ${formatNumber(time.seconds)}
-            `;
-        }
+            // Обновление таймера
+            function updateTimer() {
+                const now = new Date();
+                const diff = Math.max(0, TARGET_DATE - now);
 
-        // Инициализация (без изменений)
-        function init() {
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / (1000 * 60)) % 60);
+                const seconds = Math.floor((diff / 1000) % 60);
+
+                // Обновление значений
+                elDays.textContent = String(days).padStart(2, '0');
+                elHours.textContent = String(hours).padStart(2, '0');
+                elMinutes.textContent = String(minutes).padStart(2, '0');
+                elSeconds.textContent = String(seconds).padStart(2, '0');
+
+                // Обновление подписей
+                elDays.dataset.title = declensionNum(days, ['день', 'дня', 'дней']);
+                elHours.dataset.title = declensionNum(hours, ['час', 'часа', 'часов']);
+                elMinutes.dataset.title = declensionNum(minutes, ['минута', 'минуты', 'минут']);
+                elSeconds.dataset.title = declensionNum(seconds, ['секунда', 'секунды', 'секунд']);
+
+                if (diff === 0) {
+                    clearInterval(timerId);
+                    document.querySelector('.timer').innerHTML = "ВРЕМЯ ПРИШЛО!";
+                }
+            }
+
+            // Инициализация
+            let timerId;
             if (isNaN(TARGET_DATE)) {
-                timerElement.textContent = 'ОШИБКА В НАСТРОЙКАХ ДАТЫ';
-                return;
-            }
-
-            updateCurrentTime();
-            updateTimer();
-
-            setInterval(() => {
+                document.querySelector('.timer').textContent = 'ОШИБКА ДАТЫ!';
+            } else {
                 updateCurrentTime();
                 updateTimer();
-            }, UPDATE_INTERVAL);
-        }
-
-        // Запуск приложения
-        init();
-
-        // Логирование в европейском формате
-        console.log('Целевая дата:', 
-            TARGET_DATE.toLocaleString('de-DE', {
-                timeZone: TIME_ZONE,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            })
-        );
+                timerId = setInterval(() => {
+                    updateCurrentTime();
+                    updateTimer();
+                }, 1000);
+            }
+        });
     </script>
 </body>
 </html>
