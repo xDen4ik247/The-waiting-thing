@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>До похода на Ждуна осталось:</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('background.jpg') center/cover no-repeat;
+            position: relative;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        #countdown {
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-align: center;
+            font-family: 'Impact', sans-serif;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .timer {
+            font-size: calc(3vw + 20px);
+            line-height: 1.2;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 600px) {
+            .timer {
+                font-size: calc(4vw + 15px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div id="countdown">
+        <div class="timer" id="timer">00:00:00:00</div>
+    </div>
+
+    <script>
+        // Установите целевую дату (22 марта 2024 12:30 по Москве)
+        const targetDate = new Date('2024-03-22T12:30:00+03:00');
+
+        function updateTimer() {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('timer').innerHTML = "ВРЕМЯ ПРИШЛО!";
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('timer').innerHTML = 
+                `${days.toString().padStart(2, '0')}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Обновляем таймер каждую секунду
+        setInterval(updateTimer, 1000);
+        updateTimer(); // Первоначальный вызов
+    </script>
+</body>
+</html>
