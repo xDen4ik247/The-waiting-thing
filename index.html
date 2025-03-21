@@ -56,8 +56,8 @@
     </div>
 
     <script>
-        // Установите целевую дату (22 марта 2024 12:30 по Москве)
-        const targetDate = new Date('2024-03-22T12:30:00+03:00');
+        // Корректное создание даты для Московского времени (UTC+3)
+        const targetDate = new Date(Date.UTC(2024, 2, 22, 9, 30)); // 22 марта 2024 12:30 МСК = 09:30 UTC
 
         function updateTimer() {
             const now = new Date();
@@ -77,9 +77,13 @@
                 `${days.toString().padStart(2, '0')}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // Обновляем таймер каждую секунду
-        setInterval(updateTimer, 1000);
-        updateTimer(); // Первоначальный вызов
+        // Проверка корректности даты
+        if (isNaN(targetDate.getTime())) {
+            document.getElementById('timer').innerHTML = "ОШИБКА ДАТЫ!";
+        } else {
+            setInterval(updateTimer, 1000);
+            updateTimer();
+        }
     </script>
 </body>
 </html>
