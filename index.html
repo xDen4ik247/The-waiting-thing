@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>До похода на Ждуна осталось</title>
     <style>
+        /* Стили остаются без изменений */
         :root {
             --overlay-opacity: 0.6;
         }
@@ -90,22 +91,36 @@
         // Форматирование чисел
         const formatNumber = num => num.toString().padStart(2, '0');
 
-        // Обновление текущего времени
+        // Обновление текущего времени в европейском формате
         function updateCurrentTime() {
             const options = {
                 timeZone: TIME_ZONE,
                 hour12: false,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+                second: '2-digit'
             };
-            currentTimeElement.textContent = new Date().toLocaleString('ru-RU', options);
+            
+            const dateTimeFormat = new Intl.DateTimeFormat('de-DE', options);
+            const parts = dateTimeFormat.formatToParts(new Date());
+            
+            const formattedDate = parts
+                .map(({ type, value }) => {
+                    switch(type) {
+                        case 'day': return value.padStart(2, '0');
+                        case 'month': return value.padStart(2, '0');
+                        default: return value;
+                    }
+                })
+                .join('');
+
+            currentTimeElement.textContent = `${formattedDate}`;
         }
 
-        // Расчет оставшегося времени
+        // Расчет оставшегося времени (без изменений)
         function getTimeRemaining() {
             const now = new Date();
             const total = TARGET_DATE - now;
@@ -126,7 +141,7 @@
             };
         }
 
-        // Обновление таймера
+        // Обновление таймера (без изменений)
         function updateTimer() {
             const time = getTimeRemaining();
 
@@ -143,19 +158,16 @@
             `;
         }
 
-        // Инициализация
+        // Инициализация (без изменений)
         function init() {
-            // Проверка даты
             if (isNaN(TARGET_DATE)) {
                 timerElement.textContent = 'ОШИБКА В НАСТРОЙКАХ ДАТЫ';
                 return;
             }
 
-            // Первый запуск
             updateCurrentTime();
             updateTimer();
 
-            // Запуск интервалов
             setInterval(() => {
                 updateCurrentTime();
                 updateTimer();
@@ -165,9 +177,18 @@
         // Запуск приложения
         init();
 
-        // Логирование для отладки
-        console.log('Целевая дата:', TARGET_DATE.toLocaleString('ru-RU', {timeZone: TIME_ZONE}));
-        console.log('Текущее время:', new Date().toLocaleString('ru-RU', {timeZone: TIME_ZONE}));
+        // Логирование в европейском формате
+        console.log('Целевая дата:', 
+            TARGET_DATE.toLocaleString('de-DE', {
+                timeZone: TIME_ZONE,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })
+        );
     </script>
 </body>
 </html>
