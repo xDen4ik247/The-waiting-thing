@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>До похода на Ждуна осталось:</title>
+    <title>До похода на Ждуна осталось</title>
     <style>
+        :root {
+            --overlay-opacity: 0.6;
+        }
+
         body {
             margin: 0;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: url('IMG_6435.webp') center/cover no-repeat;
+            background: url('IMG_6435.webp') center/cover no-repeat fixed;
             position: relative;
-            flex-direction: column;
+            font-family: 'Impact', sans-serif;
         }
 
         .overlay {
@@ -22,46 +26,44 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, var(--overlay-opacity));
+            z-index: 1;
         }
 
-        #countdown {
+        .container {
             position: relative;
-            z-index: 1;
+            z-index: 2;
             color: white;
             text-align: center;
-            font-family: 'Impact', sans-serif;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            width: 90%;
-            max-width: 800px;
             padding: 20px;
+            width: 95%;
+            max-width: 1000px;
         }
 
-        .timer {
-            font-size: calc(3vw + 20px);
-            line-height: 1.2;
-            margin: 10px 0;
+        #timer {
+            font-size: 8vmin;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 20px 0;
+            letter-spacing: 2px;
         }
 
-        #current-date {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
+        #current-time {
+            position: fixed;
+            top: 15px;
+            left: 15px;
             font-family: Arial, sans-serif;
-            font-size: 16px;
-            z-index: 2;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
             border-radius: 5px;
         }
 
-        @media (max-width: 600px) {
-            .timer {
-                font-size: calc(4vw + 15px);
+        @media (max-width: 768px) {
+            #timer {
+                font-size: 10vmin;
             }
-            #current-date {
-                font-size: 14px;
+            #current-time {
+                font-size: 12px;
                 top: 10px;
                 left: 10px;
             }
@@ -70,86 +72,102 @@
 </head>
 <body>
     <div class="overlay"></div>
-    <div id="current-date"></div>
-    <div id="countdown">
-        <div class="timer" id="timer">00:00:00:00</div>
+    <div id="current-time"></div>
+    <div class="container">
+        <div id="timer"></div>
     </div>
 
     <script>
-        // Создаем дату напрямую в Московском времени
-        const targetDate = new Date('2024-03-22T12:30:00+03:00');
-        
-        // Элементы интерфейса
-        const timerElement = document.getElementById('timer');
-        const dateElement = document.getElementById('current-date');
+        // Конфигурация
+        const TARGET_DATE = new Date('2024-03-22T12:30:00+03:00'); // Москва GMT+3
+        const TIME_ZONE = 'Europe/Moscow';
+        const UPDATE_INTERVAL = 1000;
 
-        // Функция обновления текущей даты
-        function updateCurrentDate() {
-            const now = new Date();
-            dateElement.textContent = now.toLocaleString('ru-RU', {
-                timeZone: 'Europe/Moscow',
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
+        // Элементы DOM
+        const timerElement = document.getElementById('timer');
+        const currentTimeElement = document.getElementById('current-time');
+
+        // Форматирование чисел
+        const formatNumber = num => num.toString().padStart(2, '0');
+
+        // Обновление текущего времени
+        function updateCurrentTime() {
+            const options = {
+                timeZone: TIME_ZONE,
+                hour12: false,
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                timeZoneName: 'short'
-            });
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            };
+            currentTimeElement.textContent = new Date().toLocaleString('ru-RU', options);
         }
 
-        // Функция расчета времени
-        function getTimeRemaining(endtime) {
-            const total = endtime - new Date();
-            const seconds = Math.abs(Math.floor((total / 1000) % 60));
-            const minutes = Math.abs(Math.floor((total / 1000 / 60) % 60));
-            const hours = Math.abs(Math.floor((total / (1000 * 60 * 60)) % 24));
-            const days = Math.abs(Math.floor(total / (1000 * 60 * 60 * 24)));
-            
+        // Расчет оставшегося времени
+        function getTimeRemaining() {
+            const now = new Date();
+            const total = TARGET_DATE - now;
+
+            if (total <= 0) return { expired: true };
+
+            const seconds = Math.floor((total / 1000) % 60);
+            const minutes = Math.floor((total / 1000 / 60) % 60);
+            const hours = Math.floor((total / (1000 * 60 * 60)) % 24);
+            const days = Math.floor(total / (1000 * 60 * 60 * 24));
+
             return {
-                total,
                 days,
                 hours,
                 minutes,
-                seconds
+                seconds,
+                expired: false
             };
         }
 
-        // Основная функция обновления таймера
+        // Обновление таймера
         function updateTimer() {
-            const t = getTimeRemaining(targetDate);
-            
-            if (t.total <= 0) {
-                timerElement.innerHTML = "ВРЕМЯ ПРИШЛО!";
+            const time = getTimeRemaining();
+
+            if (time.expired) {
+                timerElement.textContent = 'ВРЕМЯ ПРИШЛО!';
                 return;
             }
-            
-            timerElement.innerHTML = 
-                `${String(t.days).padStart(2, '0')}:` +
-                `${String(t.hours).padStart(2, '0')}:` +
-                `${String(t.minutes).padStart(2, '0')}:` +
-                `${String(t.seconds).padStart(2, '0')}`;
 
-            // Отладочная информация в консоль
-            console.log('Текущее время:', new Date().toString());
-            console.log('Целевая дата:', targetDate.toString());
-            console.log('Осталось:', t);
+            timerElement.innerHTML = `
+                ${formatNumber(time.days)}:
+                ${formatNumber(time.hours)}:
+                ${formatNumber(time.minutes)}:
+                ${formatNumber(time.seconds)}
+            `;
         }
 
         // Инициализация
-        if (isNaN(targetDate.getTime())) {
-            timerElement.innerHTML = "ОШИБКА ДАТЫ!";
-            console.error('Некорректная дата:', targetDate);
-        } else {
-            // Запуск обновлений
-            updateCurrentDate();
+        function init() {
+            // Проверка даты
+            if (isNaN(TARGET_DATE)) {
+                timerElement.textContent = 'ОШИБКА В НАСТРОЙКАХ ДАТЫ';
+                return;
+            }
+
+            // Первый запуск
+            updateCurrentTime();
             updateTimer();
+
+            // Запуск интервалов
             setInterval(() => {
-                updateCurrentDate();
+                updateCurrentTime();
                 updateTimer();
-            }, 1000);
+            }, UPDATE_INTERVAL);
         }
+
+        // Запуск приложения
+        init();
+
+        // Логирование для отладки
+        console.log('Целевая дата:', TARGET_DATE.toLocaleString('ru-RU', {timeZone: TIME_ZONE}));
+        console.log('Текущее время:', new Date().toLocaleString('ru-RU', {timeZone: TIME_ZONE}));
     </script>
 </body>
 </html>
